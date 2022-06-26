@@ -1,64 +1,58 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\api;
 
+use App\Http\Controllers\Controller;
+use App\Http\Requests\brand\StoreRequest;
+use App\Http\Requests\brand\UpdateRequest;
+use App\Http\Resources\BrandResource;
 use App\Models\Brand;
 use Illuminate\Http\Request;
 
 class BrandController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function index()
     {
-        //
+        $perPage = request('perpage') ? intval(request('perpage')) : 50;
+        $brands = Brand::paginate($perPage);
+        return BrandResource::collection($brands)
+            ->additional([
+                'success' => true,
+            ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
+    public function store(StoreRequest $request)
     {
-        //
+        $brand = Brand::create($request->all());
+        return (new BrandResource($brand))
+            ->additional([
+                'success' => true,
+            ]);
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Brand  $brand
-     * @return \Illuminate\Http\Response
-     */
     public function show(Brand $brand)
     {
-        //
+        return (new BrandResource($brand))
+            ->additional([
+                'success' => true,
+            ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Brand  $brand
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Brand $brand)
+    public function update(UpdateRequest $request, Brand $brand)
     {
-        //
+        $brand->update($request->all());
+        return (new BrandResource($brand))
+            ->additional([
+                'success' => true,
+            ]);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Brand  $brand
-     * @return \Illuminate\Http\Response
-     */
     public function destroy(Brand $brand)
     {
-        //
+        $brand->delete();
+        return (new BrandResource($brand))
+            ->additional([
+                'success' => true
+            ]);
     }
 }
