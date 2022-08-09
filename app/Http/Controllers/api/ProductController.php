@@ -22,7 +22,8 @@ class ProductController extends Controller
             ]);
     }
 
-    public function create() {
+    public function create()
+    {
         return response()->json([
             'data' => [
                 'brands' => Brand::orderBy('id')->pluck('name', 'id'),
@@ -34,16 +35,29 @@ class ProductController extends Controller
 
     public function store(StoreRequest $request)
     {
-        $product = $request->all(); // el request trae consigo al campo tags pero laravel solo toma los campos correctos para crear (falta probar si se puede usar except o only)
-        $tags = explode(',', $product['tags']); // extraer el string que representa a un array de tags y lo convierto a array
+        // request trae consigo al campo tags pero laravel solo toma los campos correctos para crear (falta probar si se puede usar except o only)
+        $product = $request->all();
+
+        // rescato los tag que viene en forma de cadena, ejm: "1,2,3,4"
+        $tags = $product['tags'] ?? null; // tambien se puede usar la funcion isset() o el operador ternariopara manejar el error
+
+        // guardo la imagen
         if ($image = $request->file('image')) {
             $destiny = 'storage/image/'; // tambien funciona: public_path('storage/images')
             $name = date('YmdHis') . "." . $image->getClientOriginalExtension(); // tambien se puede usar; time() y uniqid()
             $image->move($destiny, $name);
             $product['image'] = $name;
         }
+
+        // guardo el producto
         $product = Product::create($product);
-        $product->tags()->sync($tags); // le paso esos tags
+
+        // guardo las etiquetas
+        if (!empty($tags)) { // verifico que guarde solo si no esta vacio
+            $tags = explode(',', $tags); // $tags se convierte en un array, por ejm: ["1","2","3","4"]
+            $product->tags()->sync($tags);
+        }
+
         return (new ProductResource($product))
             ->additional([
                 'success' => true,
@@ -54,23 +68,39 @@ class ProductController extends Controller
     {
         return (new ProductResource($product))
             ->additional([
+                'brand' => $product->brand,
                 'tags' => $product->tags()->pluck('name', 'id'),
                 'success' => true,
             ]);
     }
 
-    public function update(StoreRequest $request, Product $product)
+    public function update(StoreRequest $request, Product $product) // en este caso se utiliza el mismo request
     {
+        // guardo la informacion del request
         $productRequest = $request->all();
+
+        // rescato los tag que viene en forma de cadena, ejm: "1,2,3,4"
+        $tags = $productRequest['tags'] ?? null; // para que no provoque un error porque no encuentra dicho key, si no se manda tags
+
+        // guardo la imagen
         if ($image = $request->file('image')) {
             $destiny = 'storage/image/'; // tambien funciona: public_path('storage/images')
             $name = date('YmdHis') . "." . $image->getClientOriginalExtension(); // tambien se puede usar; time() y uniqid()
             $image->move($destiny, $name);
             $productRequest['image'] = $name;
 
-            unlink(public_path('storage/image/' . $product->image));
+            unlink(public_path('storage/image/' . $product->image)); // borro la imagen anterior
         }
+
+        // actualizo el producto
         $product->update($productRequest);
+
+        // guardo las etiquetas
+        if (!empty($tags)) { // verifico que guarde solo si no esta vacio
+            $tags = explode(',', $tags); // $tags se convierte en un array, por ejm: ["1","2","3","4"]
+            $product->tags()->sync($tags);
+        }
+
         return (new ProductResource($product))
             ->additional([
                 'success' => true,
@@ -82,7 +112,7 @@ class ProductController extends Controller
         $product->delete();
         return (new ProductResource($product))
             ->additional([
-                'success' => true
+                'success' => true,
             ]);
     }
 }
