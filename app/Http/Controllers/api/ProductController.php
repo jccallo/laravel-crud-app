@@ -110,6 +110,7 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         $product->delete();
+        unlink(public_path('storage/image/' . $product->image));
         return (new ProductResource($product))
             ->additional([
                 'success' => true,

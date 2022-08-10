@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Brand;
+use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Tag;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -27,5 +28,6 @@ class DatabaseSeeder extends Seeder
         Tag::factory(5)->create();
         Brand::factory(5)->create();
         Product::factory(10)->create();
+        Customer::factory(5)->create();
     }
 }

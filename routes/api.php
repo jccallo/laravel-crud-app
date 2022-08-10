@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\api\BrandController;
+use App\Http\Controllers\api\CustomerController;
 use App\Http\Controllers\api\ProductController;
 use App\Http\Controllers\api\TagController;
 use Illuminate\Http\Request;
@@ -24,3 +25,4 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::apiResource('tags', TagController::class);
 Route::apiResource('brands', BrandController::class);
 Route::resource('products', ProductController::class)->except('edit');
+Route::resource('customers', CustomerController::class);
